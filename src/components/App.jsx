@@ -1,18 +1,26 @@
 import { Component } from 'react';
-
 class App extends Component {
-  state = { contacts: [], name: '', number: '', filter: '' };
+  state = { contacts: [], filter: '', name: '', number: '' };
 
   handleSubmit = e => {
     e.preventDefault();
-    this.setState(prevState => ({
-      contacts: [
-        ...prevState.contacts,
-        { name: this.state.name, tel: this.state.number },
-      ],
-      name: '',
-      number: '',
-    }));
+
+    const isDuplicate = this.state.contacts.some(
+      contact => contact.name === this.state.name
+    );
+    if (!isDuplicate) {
+      this.setState(prevState => ({
+        contacts: [
+          ...prevState.contacts,
+          { name: this.state.name, tel: this.state.number },
+        ],
+        name: '',
+        number: '',
+        filter: '',
+      }));
+    } else {
+      alert('Ten kontakt już istnieje');
+    }
   };
 
   handleOnChange = (e, type) => {
@@ -22,6 +30,17 @@ class App extends Component {
     if (type === 'tel') {
       this.setState({ number: e.target.value });
     }
+    if (type === 'filter') {
+      this.setState({ filter: e.target.value });
+    }
+  };
+
+  handleDelete = index => {
+    const updatedContacts = [...this.state.contacts];
+    updatedContacts.splice(index, 1);
+
+    // Update the state with the new contacts array
+    this.setState({ contacts: updatedContacts });
   };
 
   render() {
@@ -52,16 +71,40 @@ class App extends Component {
           <br></br>
           <button type="submit">Add Contact</button>
         </form>
+
         <h1>Contacts</h1>
-        <h3>Find contacts by name</h3>
-        <input type="filter" />
         <ul>
           {this.state.contacts.map((value, index) => (
             <li key={index}>
               {value.name}: {value.tel}
+              <button onClick={() => this.handleDelete(index)}>Delete</button>
             </li>
           ))}
         </ul>
+        <h3>Find contacts by name</h3>
+        <input
+          type="text"
+          value={this.state.filter}
+          onChange={e => this.handleOnChange(e, 'filter')}
+        />
+        {this.state.filter && (
+          <ul>
+            {this.state.contacts
+              .filter(value =>
+                value.name
+                  .toLowerCase()
+                  .includes(this.state.filter.toLowerCase())
+              )
+              .map((value, index) => (
+                <li key={index}>
+                  {value.name}: {value.tel}
+                  <button onClick={() => this.handleDelete(index)}>
+                    Delete
+                  </button>
+                </li>
+              ))}
+          </ul>
+        )}
       </>
     );
   }
